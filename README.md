@@ -33,7 +33,7 @@ Once the application is setup, you will need to download and setup the models.
 
 - Head over to https://huggingface.co/c01zaut and start downloading models!
 - Copy the downloaded models to this repo's `./models` directory
-- Update the `availble_models` dictionary with the correct filename of the model, and update any parameters as you see fit
+- Update the `model_configs` dictionary in `model_configs.py` with the correct filename of the model, and update any parameters as you see fit
 
 With models in place, and `available_models` containing at least 1 local model, you can start the app with:
 
@@ -131,7 +131,7 @@ E RKNN: [00:45:13.553] meet unkown shape, op name: matmul_qkv_rkllm_spilt_2, sha
 --------------------------------------------------------------------------------------
 ```
 
-- This is not a production-ready application. It cannot properly handle concurrency, or if users on the saem network attempt to do things like load a model at the same time, or attempt to query the model simultaneously. 
+- This is not a production-ready application. It cannot properly handle concurrency, or if users on the same network attempt to do things like load a model at the same time, or attempt to query the model simultaneously. 
 
 - As of this time, only txt2txt models without LoRAs or prompt caches are supported.
 
