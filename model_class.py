@@ -64,9 +64,14 @@ def callback_impl(result, userdata, state):
         global_state = state
         # Monitor if the current byte data is complete; if incomplete, record it for later parsing
         try:
-            global_text.append((split_byte_data + result.contents.text).decode('utf-8'))
-            print((split_byte_data + result.contents.text).decode('utf-8'), end='')
-            split_byte_data = bytes(b"")
+            if split_byte_data != None:
+                global_text.append((split_byte_data + result.contents.text).decode('utf-8'))
+                print((split_byte_data + result.contents.text).decode('utf-8'), end='')
+                split_byte_data = bytes(b"")
+            else:
+                global_text.append((b'' + result.contents.text).decode('utf-8'))
+                print((split_byte_data + result.contents.text).decode('utf-8'), end='')
+                split_byte_data = bytes(b"")
         except:
             split_byte_data += result.contents.text
         sys.stdout.flush()
@@ -174,11 +179,15 @@ class RKLLMLoaderClass:
         model_thread.start()
         # history[-1][1] represents the current dialogue
         history[-1][1] = ""
+        # history[-1][1] = str(history[-1][1]).replace("<Thought>", "\\<Thought\\>")
         # Wait for the model to finish running and periodically check the inference thread of the model
         model_thread_finished = False
         while not model_thread_finished:
             while len(global_text) > 0:
                 history[-1][1] += global_text.pop(0)
+                # Marco-o1
+                history[-1][1] = str(history[-1][1]).replace("<Thought>", "\\<Thought\\>")
+                history[-1][1] = str(history[-1][1]).replace("<Output>", "\\<Output\\>")
                 time.sleep(0.005)
                 # Gradio automatically pushes the result returned by the yield statement when calling the then method
                 yield history
