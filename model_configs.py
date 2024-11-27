@@ -130,7 +130,7 @@ model_configs = {
     },
     "Gemma-2-IT-Google": {
         "base_config": {
-            "st_model_id": "c01zaut/gemma-2-9b-it-rk3588-1.1.1",
+            "st_model_id": "c01zaut/gemma-2-9b-it-rk3588-1.1.2",
             "max_context_len": 4096,
             "max_new_tokens": 8192,
             "top_k": 15,
