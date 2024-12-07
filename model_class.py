@@ -112,9 +112,9 @@ class RKLLMLoaderClass:
             self.rkllm_param.mirostat_tau = 5.0
             self.rkllm_param.mirostat_eta = 0.1
             self.rkllm_param.is_async = False
-            self.rkllm_param.img_start = "".encode('utf-8')
-            self.rkllm_param.img_end = "".encode('utf-8')
-            self.rkllm_param.img_content = "".encode('utf-8')
+            self.rkllm_param.img_start = "<image>".encode('utf-8')
+            self.rkllm_param.img_end = "</image>".encode('utf-8')
+            self.rkllm_param.img_content = "<unk>".encode('utf-8')
             self.rkllm_param.extend_param.base_domain_id = 0
             self.handle = RKLLM_Handle_t()
             self.rkllm_init = rkllm_lib.rkllm_init
@@ -187,7 +187,6 @@ class RKLLMLoaderClass:
                 response["content"] = str(response["content"]).replace("</Thought>", "\\<\\/Thought\\>")
                 response["content"] = str(response["content"]).replace("<Output>", "\\<Output\\>")
                 response["content"] = str(response["content"]).replace("</Output>", "\\<\\/Output\\>")
-                response = {"role": "assistant", "content": response["content"]}
                 time.sleep(0.005)
                 # Gradio automatically pushes the result returned by the yield statement when calling the then method
                 yield response
