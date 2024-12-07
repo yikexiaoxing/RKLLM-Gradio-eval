@@ -155,41 +155,39 @@ class RKLLMLoaderClass:
         self.rkllm_abort(self.handle)
         self.rkllm_destroy(self.handle)
     # Retrieve the output from the RKLLM model and print it in a streaming manner
-    def get_RKLLM_output(self, history):
+    def get_RKLLM_output(self, message, history):
         # Link global variables to retrieve the output information from the callback function
         global global_text, global_state
         global_text = []
         global_state = -1
-        # Build prompt and tokenize. 
-        user_message = history[-1][0]
+        user_prompt = {"role": "user", "content": message}
+        history.append(user_prompt)
         # Gemma 2 does not support system prompt.
         if self.system_prompt == "":
-            chat = [
-                {"role": "user", "content": user_message}
-            ]
+            prompt = [user_prompt]
         else:
-            chat = [
+            prompt = [
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": user_message}
+                user_prompt
             ]
+        # print(prompt)
         tokenizer = AutoTokenizer.from_pretrained(self.st_model_id, trust_remote_code=True)
-        prompt = tokenizer.apply_chat_template(chat, tokenize=True, add_generation_prompt=True)
-        # Create a thread for model inference
+        prompt = tokenizer.apply_chat_template(prompt, tokenize=True, add_generation_prompt=True)
+        # response = {"role": "assistant", "content": "Loading..."}
+        response = {"role": "assistant", "content": ""}
+        history.append(response)
         model_thread = threading.Thread(target=self.run, args=(prompt,))
         model_thread.start()
-        # history[-1][1] represents the current dialogue
-        history[-1][1] = ""
-        # history[-1][1] = str(history[-1][1]).replace("<Thought>", "\\<Thought\\>")
-        # Wait for the model to finish running and periodically check the inference thread of the model
         model_thread_finished = False
         while not model_thread_finished:
             while len(global_text) > 0:
-                history[-1][1] += global_text.pop(0)
+                response["content"] += global_text.pop(0)
                 # Marco-o1
-                history[-1][1] = str(history[-1][1]).replace("<Thought>", "\\<Thought\\>")
-                history[-1][1] = str(history[-1][1]).replace("<Output>", "\\<Output\\>")
+                response["content"] = str(response["content"]).replace("<Thought>", "\\<Thought\\>")
+                response["content"] = str(response["content"]).replace("<Output>", "\\<Output\\>")
+                response = {"role": "assistant", "content": response["content"]}
                 time.sleep(0.005)
                 # Gradio automatically pushes the result returned by the yield statement when calling the then method
-                yield history
+                yield response
             model_thread.join(timeout=0.005)
             model_thread_finished = not model_thread.is_alive()

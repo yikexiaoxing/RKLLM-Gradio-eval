@@ -12,6 +12,8 @@ os.environ["RKLLM_LOG_LEVEL"] = "1"
 # Set resource limit
 resource.setrlimit(resource.RLIMIT_NOFILE, (102400, 102400))
 
+history = []
+
 if __name__ == "__main__":
     # Helper function to define initializing model before class is declared
     # Without this, you would need to initialize the class before you select the model
@@ -34,19 +36,10 @@ if __name__ == "__main__":
         output = [[f"<h4 style=\"text-align:center;\">{model_init}\n</h4>", None]]
         sys.stdout.flush()
         return output 
-
-    # Wrapper functions so the class can be loaded dynamically
-    def get_user_input(user_message, history):
+    # Helper function to stream LLM output into the chat box
+    def get_RKLLM_output(message, history):
         try:
-            prompt, history = rkllm_model.get_user_input(user_message, history)
-            return "", history
-        except RuntimeError as e:
-            print(f"ERROR: {e}")
-
-    def get_RKLLM_output(history):
-        try:
-            yield from rkllm_model.get_RKLLM_output(history)
-            print(history)
+            yield from rkllm_model.get_RKLLM_output(message, history)
         except RuntimeError as e:
             print(f"ERROR: {e}")
         return history
@@ -61,18 +54,11 @@ if __name__ == "__main__":
                 statusBox = gr.Chatbot(height=100)
                 model_dropdown.input(initialize_model, [model_dropdown], [statusBox])
             with gr.TabItem("Txt2Txt"):
-                msg = gr.Textbox(placeholder="Please input your question here...", label="Send a message")
-                rkllmServer = gr.Chatbot()
-                msg.submit(get_user_input, [msg, rkllmServer], [msg, rkllmServer], queue=True).then(get_RKLLM_output, rkllmServer, rkllmServer)
+                txt2txt = gr.ChatInterface(fn=get_RKLLM_output, type="messages")
             with gr.TabItem("Txt2Mesh"):
                 with gr.Row():    
                     with gr.Column(scale=3):
-                        msg = gr.Textbox(placeholder="Please input your question here...", label="inputTextBox")
-                        statusBox = gr.Chatbot()
-                        # model_dropdown.input(initialize_model, [model_dropdown], [statusBox])
-                        msg.submit(get_user_input, [msg, statusBox], [msg, statusBox], queue=True).then(get_RKLLM_output, statusBox, statusBox)
-                        clear = gr.Button("Clear")
-                        clear.click(lambda: None, None, rkllmServer, queue=False)
+                        txt2txt = gr.ChatInterface(fn=get_RKLLM_output, type="messages")
                     with gr.Column(scale=2):
                         # Add the text box for 3D mesh input and button
                         mesh_input = gr.Textbox(
