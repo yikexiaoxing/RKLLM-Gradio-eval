@@ -64,12 +64,12 @@ def callback_impl(result, userdata, state):
         global_state = state
         # Monitor if the current byte data is complete; if incomplete, record it for later parsing
         try:
-            if split_byte_data != None:
-                global_text.append((split_byte_data + result.contents.text).decode('utf-8'))
+            if split_byte_data == None:
+                global_text.append((b'' + result.contents.text).decode('utf-8'))
                 print((split_byte_data + result.contents.text).decode('utf-8'), end='')
                 split_byte_data = bytes(b"")
             else:
-                global_text.append((b'' + result.contents.text).decode('utf-8'))
+                global_text.append((split_byte_data + result.contents.text).decode('utf-8'))
                 print((split_byte_data + result.contents.text).decode('utf-8'), end='')
                 split_byte_data = bytes(b"")
         except:
