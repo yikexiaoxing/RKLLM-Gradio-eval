@@ -64,8 +64,8 @@ def callback_impl(result, userdata, state):
         global_state = state
         # Monitor if the current byte data is complete; if incomplete, record it for later parsing
         try:
-            if split_byte_data == None:
-                global_text.append((b'' + result.contents.text).decode('utf-8'))
+            if split_byte_data == None or split_byte_data == "" or split_byte_data == '':
+                global_text.append((b"" + result.contents.text).decode('utf-8'))
                 print((split_byte_data + result.contents.text).decode('utf-8'), end='')
                 split_byte_data = bytes(b"")
             else:
@@ -104,6 +104,7 @@ class RKLLMLoaderClass:
             self.rkllm_param.skip_special_token = True
             self.rkllm_param.top_k = self.base_config["top_k"]
             self.rkllm_param.top_p = self.base_config["top_p"]
+            # self.rkllm_param.min_p = 0.1
             self.rkllm_param.temperature = self.base_config["temperature"]
             self.rkllm_param.repeat_penalty = self.base_config["repeat_penalty"]
             self.rkllm_param.frequency_penalty = self.base_config["frequency_penalty"]

@@ -24,8 +24,8 @@ model_configs = {
             "top_k": 1,
             "top_p": 0.9,
             "temperature": 0.6,
-            "repeat_penalty": 1.1,
-            "frequency_penalty": 0.3,
+            "repeat_penalty": 1.0,
+            "frequency_penalty": 0.2,
             "system_prompt": ""
             # "system_prompt": "You are a helpful assistant who renders 3d meshes in obj format. When prompted with an object to generate, respond back with a full description of the object's physical features that you will render. Think carefully about its shape, texture, and size, and then respond in obj format. Always generate a valid mesh that is rendered counter-clockwise. Always respond back with a description and mesh in obj format. If you are given an obj as input, assume that it was not rendered properly, and respond back with the item that it should depict. Then, generate the correct mesh so that it contains a proper, coherent object."
             # "system_prompt": "You are an expert graphic designer who renders 3d meshes in obj format. When prompted with an object to generate, describe the object's physical features that you will render, in the order that you render them in. Think carefully about the object's shape, and then respond in obj format. Always generate a valid and coherent mesh."

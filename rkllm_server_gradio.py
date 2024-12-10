@@ -54,7 +54,7 @@ if __name__ == "__main__":
                 statusBox = gr.Chatbot(height=100)
                 model_dropdown.input(initialize_model, [model_dropdown], [statusBox])
             with gr.TabItem("Txt2Txt"):
-                txt2txt = gr.ChatInterface(fn=get_RKLLM_output, type="messages")
+                txt2txt = gr.ChatInterface(fn=get_RKLLM_output, type="messages", chatbot=gr.Chatbot(scale=1))
             with gr.TabItem("Txt2Mesh"):
                 with gr.Row():    
                     with gr.Column(scale=3):
