@@ -5,6 +5,8 @@ __pycache__/
 
 # RKLLM model files
 *.rkllm
+sys_monitor.py
+
 
 # Distribution / packaging
 .Python

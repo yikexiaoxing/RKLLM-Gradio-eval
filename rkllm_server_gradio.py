@@ -57,7 +57,7 @@ if __name__ == "__main__":
                 txt2txt = gr.ChatInterface(fn=get_RKLLM_output, type="messages", chatbot=gr.Chatbot(scale=1))
             with gr.TabItem("Txt2Mesh"):
                 with gr.Row():    
-                    with gr.Column(scale=3):
+                    with gr.Column(scale=2):
                         txt2txt = gr.ChatInterface(fn=get_RKLLM_output, type="messages")
                     with gr.Column(scale=2):
                         # Add the text box for 3D mesh input and button

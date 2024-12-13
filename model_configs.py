@@ -81,7 +81,7 @@ model_configs = {
     "Qwen-2.5-Instruct": {
         "base_config": {
             "st_model_id": "Qwen/Qwen2.5-14B-Instruct",
-            "max_context_len": 10000,
+            "max_context_len": 4096,
             "max_new_tokens": 8192,
             "top_k": 5,
             "top_p": 0.8,
@@ -103,11 +103,11 @@ model_configs = {
             "st_model_id": "AIDC-AI/Marco-o1",
             "max_context_len": 4096,
             "max_new_tokens": 8192,
-            "top_k": 5,
+            "top_k": 1,
             "top_p": 0.8,
-            "temperature": 0.3,
+            "temperature": 0.9,
             "repeat_penalty": 1.00,
-            "frequency_penalty": 0.2,
+            "frequency_penalty": 0.8,
             "system_prompt": "You are a well-trained AI assistant, your name is Marco-o1. Created by AI Business of Alibaba International Digital Business Group.\n\n## IMPORTANT!!!!!!\nWhen you answer questions, your thinking should be done in <Thought>, and your results should be output in <Output>.\n<Thought> should be in English as much as possible, but there are 2 exceptions, one is the reference to the original text, and the other is that mathematics should use markdown format, and the output in <Output> needs to follow the language of the user input."
         },
         "models": {
