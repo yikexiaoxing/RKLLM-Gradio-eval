@@ -46,12 +46,12 @@ model_configs = {
         "base_config": {
             "st_model_id": "microsoft/Phi-3.5-mini-instruct",
             "max_context_len": 4096,
-            "max_new_tokens": 512,
-            "top_k": 8,
-            "top_p": 0.8,
+            "max_new_tokens": 4096,
+            "top_k": 1,
+            "top_p": 0.9,
             "temperature": 0.7,
             "repeat_penalty": 1.1,
-            "frequency_penalty": 0.5,
+            "frequency_penalty": 1.0,
             "system_prompt": "You are Phi 3.5 Mini, an artificial intelligence model trained by Microsoft. You are a helpful AI assistant."
         },
         "models": {
@@ -65,11 +65,11 @@ model_configs = {
             "st_model_id": "c01zaut/Phi-3-mini-128k-instruct-rk3588-1.1.2",
             "max_context_len": 4096,
             "max_new_tokens": 4096,
-            "top_k": 8,
+            "top_k": 1,
             "top_p": 0.8,
             "temperature": 0.7,
             "repeat_penalty": 1.1,
-            "frequency_penalty": 0.5,
+            "frequency_penalty": 0.9,
             "system_prompt": "You are Phi 3.5 Mini, an artificial intelligence model trained by Microsoft. You are a helpful AI assistant."
         },
         "models": {
