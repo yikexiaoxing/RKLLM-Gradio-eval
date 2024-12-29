@@ -9,19 +9,28 @@ import os
 MODEL_PATH = "./models"
 
 # Create a dict of various model configs, and then check the ./models directory if any exist
-# This will become the content of the model selector's drop down menu
 def available_models():
     if not os.path.exists(MODEL_PATH):
         os.mkdir(MODEL_PATH)
+        print(f"Created {MODEL_PATH} directory")
     # Initialize the dict of available models as empty
     rkllm_model_files = {}
     # Populate the dictionary with found models, and their base configurations
     for family, config in model_configs.items():
-            for model, details in config["models"].items():
-                filename = details["filename"]
-                if os.path.exists(os.path.join(MODEL_PATH, filename)):
-                    rkllm_model_files[model] = {}
-                    rkllm_model_files[model].update({"name": model,"family": family, "filename": filename, "config": config["base_config"]})
+        print(f"Checking models for family: {family}")
+        for model, details in config["models"].items():
+            filename = details["filename"]
+            model_path = os.path.join(MODEL_PATH, filename)
+            if os.path.exists(model_path):
+                print(f"Found model: {model} with filename: {filename}")
+                rkllm_model_files[model] = {
+                    "name": model,
+                    "family": family,
+                    "filename": filename,
+                    "config": config["base_config"]
+                }
+            else:
+                print(f"Model file not found: {model_path}")
     return rkllm_model_files
 
 # Define the callback function
@@ -81,7 +90,7 @@ callback_type = ctypes.CFUNCTYPE(None, ctypes.POINTER(RKLLMResult), ctypes.c_voi
 callback = callback_type(callback_impl)
 
 class RKLLMLoaderClass:
-    def __init__(self, model="", qtype="w8a8", opt="1", hybrid_quant="1.0"):        
+    def __init__(self, model="", qtype="w8a8", opt="1", hybrid_quant="1.0"):
         self.qtype = qtype
         self.opt = opt
         self.model = model
@@ -104,7 +113,6 @@ class RKLLMLoaderClass:
             self.rkllm_param.skip_special_token = True
             self.rkllm_param.top_k = self.base_config["top_k"]
             self.rkllm_param.top_p = self.base_config["top_p"]
-            # self.rkllm_param.min_p = 0.1
             self.rkllm_param.temperature = self.base_config["temperature"]
             self.rkllm_param.repeat_penalty = self.base_config["repeat_penalty"]
             self.rkllm_param.frequency_penalty = self.base_config["frequency_penalty"]
@@ -136,32 +144,39 @@ class RKLLMLoaderClass:
     def get_user_input(self, user_message, history):
         history = history + [[user_message, None]]
         return "", history
+
     def tokens_to_ctypes_array(self, tokens, ctype):
         # Converts a Python list to a ctypes array.
         # The tokenizer outputs as a Python list.
         return (ctype * len(tokens))(*tokens)
+
     # Run inference
-    def run(self, prompt):       
+    def run(self, prompt, max_tokens=None):
         self.rkllm_infer_params = RKLLMInferParam()
         ctypes.memset(ctypes.byref(self.rkllm_infer_params), 0, ctypes.sizeof(RKLLMInferParam))
         self.rkllm_infer_params.mode = RKLLMInferMode.RKLLM_INFER_GENERATE
+        if max_tokens is not None:
+            self.rkllm_infer_params.max_new_tokens = max_tokens
         self.rkllm_input = RKLLMInput()
         self.rkllm_input.input_mode = RKLLMInputMode.RKLLM_INPUT_TOKEN
         self.rkllm_input.input_data.token_input.input_ids = self.tokens_to_ctypes_array(prompt, ctypes.c_int)
         self.rkllm_input.input_data.token_input.n_tokens = ctypes.c_ulong(len(prompt))
         self.rkllm_run(self.handle, ctypes.byref(self.rkllm_input), ctypes.byref(self.rkllm_infer_params), None)
         return
+
     # Release RKLLM object from memory
     def release(self):
         self.rkllm_abort(self.handle)
         self.rkllm_destroy(self.handle)
+
     # Retrieve the output from the RKLLM model and print it in a streaming manner
-    def get_RKLLM_output(self, message, history):
+    def get_RKLLM_output(self, message, history=None, max_tokens=None, temperature=None, top_p=None, frequency_penalty=None, presence_penalty=None):
         # Link global variables to retrieve the output information from the callback function
         global global_text, global_state
         global_text = []
         global_state = -1
         user_prompt = {"role": "user", "content": message}
+        history = history or []
         history.append(user_prompt)
         # Gemma 2 does not support system prompt.
         if self.system_prompt == "":
@@ -171,13 +186,11 @@ class RKLLMLoaderClass:
                 {"role": "system", "content": self.system_prompt},
                 user_prompt
             ]
-        # print(prompt)
         tokenizer = AutoTokenizer.from_pretrained(self.st_model_id, trust_remote_code=True)
         prompt = tokenizer.apply_chat_template(prompt, tokenize=True, add_generation_prompt=True)
-        # response = {"role": "assistant", "content": "Loading..."}
         response = {"role": "assistant", "content": ""}
         history.append(response)
-        model_thread = threading.Thread(target=self.run, args=(prompt,))
+        model_thread = threading.Thread(target=self.run, args=(prompt, max_tokens))
         model_thread.start()
         model_thread_finished = False
         while not model_thread_finished:
