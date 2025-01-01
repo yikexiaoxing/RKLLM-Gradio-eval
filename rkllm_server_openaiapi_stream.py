@@ -122,32 +122,29 @@ def count_tokens(text: str, model_name: str) -> int:
         logger.error(f"Error counting tokens: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error counting tokens: {str(e)}")
 
-# Helper function to get and process LLM output
-def get_RKLLM_output(message, history=None, max_tokens=None, temperature=None, top_p=None, frequency_penalty=None, presence_penalty=None):
+async def get_RKLLM_output(message, history=None, max_tokens=None, temperature=None, top_p=None, frequency_penalty=None, presence_penalty=None, stream=False):
     try:
-        # Ensure max_tokens is within the model's limit
-        if max_tokens > 2048:  # Adjust this limit as needed
+        if max_tokens > 2048:
             max_tokens = 2048
-
-        # Get the generator object from the model
+            
         output_gen = rkllm_model.get_RKLLM_output(message, history or [], max_tokens=max_tokens)
-
-        # Initialize a variable to hold the output
-        last_content = None
-
-        for item in output_gen:
-            # Check if the item is a dictionary with 'content' key
-            if isinstance(item, dict) and 'content' in item:
-                last_content = item['content']  # Store the last content as we go
-
-            # If the item doesn't match the expected type, we handle it here
-            elif isinstance(item, str):
-                last_content = item  # In case it's just a string, we use it as the final output
-
-        if last_content:
-            return last_content  # Return the last content (final part of the output)
+        
+        if stream:
+            async for item in output_gen:
+                if isinstance(item, dict) and 'content' in item:
+                    yield f"data: {json.dumps({'choices': [{'delta': {'content': item['content']}}]})}\n\n"
+                elif isinstance(item, str):
+                    yield f"data: {json.dumps({'choices': [{'delta': {'content': item}}]})}\n\n"
+            yield f"data: {json.dumps({'choices': [{'finish_reason': 'stop'}]})}\n\n"
+            yield "data: [DONE]\n\n"
         else:
-            return "Empty response from model!"  # Fallback if no output is collected
+            last_content = None
+            for item in output_gen:
+                if isinstance(item, dict) and 'content' in item:
+                    last_content = item['content']
+                elif isinstance(item, str):
+                    last_content = item
+            return last_content or "Empty response from model!"
 
     except RuntimeError as e:
         logger.error(f"Error generating response: {str(e)}")
@@ -224,17 +221,16 @@ async def create_completion(request: CompletionRequest):
             presence_penalty = request.presence_penalty if request.presence_penalty is not None else base_config.get("presence_penalty", 0.0)
 
             # Generate the response based on the model and request data
-            response_content = get_RKLLM_output(
-                message=request.prompt,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty
-            )
-            
             return StreamingResponse(
-                stream_tokens(response_content),
+                get_RKLLM_output(
+                    message=request.prompt,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
+                    stream=True
+                ),
                 media_type="text/event-stream"
             )
             logger.info(f"Response: {response}")
@@ -369,22 +365,18 @@ async def create_chat_completion(request: ChatCompletionRequest):
             presence_penalty = request.presence_penalty if request.presence_penalty is not None else base_config.get("presence_penalty", 0.0)
 
             prompt = "\n".join([msg["content"] for msg in request.messages])
-            response_content = get_RKLLM_output(
-                message=prompt,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty
-            )
-            
             return StreamingResponse(
-                stream_tokens(response_content),
+                get_RKLLM_output(
+                    message=prompt,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
+                    stream=True
+                ),
                 media_type="text/event-stream"
             )
-            logger.info(f"Response: {response}")
-
-            return response
         else:
             # Validate the request
             if not request.model:
