@@ -130,7 +130,7 @@ async def get_RKLLM_output(message, history=None, max_tokens=None, temperature=N
         output_gen = rkllm_model.get_RKLLM_output(message, history or [], max_tokens=max_tokens)
         
         if stream:
-            async for item in output_gen:
+            for item in output_gen:
                 if isinstance(item, dict) and 'content' in item:
                     yield f"data: {json.dumps({'choices': [{'delta': {'content': item['content']}}]})}\n\n"
                 elif isinstance(item, str):
@@ -144,11 +144,13 @@ async def get_RKLLM_output(message, history=None, max_tokens=None, temperature=N
                     last_content = item['content']
                 elif isinstance(item, str):
                     last_content = item
-            return last_content or "Empty response from model!"
+            if last_content:
+                raise StopAsyncIteration(last_content)
+            raise StopAsyncIteration("Empty response from model!")
 
     except RuntimeError as e:
         logger.error(f"Error generating response: {str(e)}")
-        return f"Error: {str(e)}"
+        raise StopAsyncIteration(f"Error: {str(e)}")
 
 # API Endpoint: /v1/models (Lists available models)
 @app.get("/v1/models")
