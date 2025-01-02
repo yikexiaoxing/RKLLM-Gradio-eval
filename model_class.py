@@ -195,14 +195,7 @@ class RKLLMLoaderClass:
         model_thread_finished = False
         while not model_thread_finished:
             while len(global_text) > 0:
-                response["content"] += global_text.pop(0)
-                # Marco-o1
-                response["content"] = str(response["content"]).replace("<Thought>", "\\<Thought\\>")
-                response["content"] = str(response["content"]).replace("</Thought>", "\\<\\/Thought\\>")
-                response["content"] = str(response["content"]).replace("<Output>", "\\<Output\\>")
-                response["content"] = str(response["content"]).replace("</Output>", "\\<\\/Output\\>")
                 time.sleep(0.005)
-                # Gradio automatically pushes the result returned by the yield statement when calling the then method
-                yield response
+                yield global_text.pop(0)
             model_thread.join(timeout=0.005)
             model_thread_finished = not model_thread.is_alive()
