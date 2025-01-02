@@ -82,7 +82,8 @@ def callback_impl(result, userdata, state):
                 print((split_byte_data + result.contents.text).decode('utf-8'), end='')
                 split_byte_data = bytes(b"")
         except:
-            split_byte_data += result.contents.text
+            if result.contents.text is not None:
+                split_byte_data += result.contents.text
         sys.stdout.flush()
 
 # Connect the callback function between the Python side and the C++ side
