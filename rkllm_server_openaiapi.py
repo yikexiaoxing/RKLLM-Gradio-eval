@@ -45,6 +45,7 @@ class Usage(BaseModel):
     completion_tokens: int
     prompt_tokens: int
     total_tokens: int
+    generate_speed: float
 
 
 # Input for OpenAI Completion API (non-streaming and streaming)
@@ -437,8 +438,13 @@ async def create_completion(request: CompletionRequest):
                 presence_penalty=presence_penalty,
             )
 
-            # Count tokens in the response
+            #统计生成的tokens
             completion_tokens = len(response_content)
+
+            #计算生成速度
+            infer_time = rkllm_model.get_infer_time()
+            generate_speed = float(completion_tokens / infer_time)
+            # generate_speed = f"{generate_speed:.2f} tokens/s"
 
             response_content = "".join(response_content)
 
@@ -472,6 +478,7 @@ async def create_completion(request: CompletionRequest):
                     "prompt_tokens": prompt_tokens,
                     "completion_tokens": completion_tokens,
                     "total_tokens": prompt_tokens + completion_tokens,
+                    "generate_speed": generate_speed,
                 },
             }
             logger.info(f"Response: {response}")
@@ -565,6 +572,11 @@ async def create_chat_completion(request: ChatCompletionRequest):
 
             # Count tokens in the response
             completion_tokens = len(response_content)
+            #计算生成速度
+            infer_time = rkllm_model.get_infer_time()
+            generate_speed = completion_tokens / infer_time
+
+            generate_speed = round(generate_speed, 2)
 
             response_content = "".join(response_content)
 
@@ -592,6 +604,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 total_tokens=prompt_tokens + completion_tokens,
+                generate_speed=generate_speed,
             )
 
             response = ChatCompletionResponse(

@@ -140,6 +140,7 @@ class RKLLMLoaderClass:
             self.rkllm_destroy = rkllm_lib.rkllm_destroy
             self.rkllm_destroy.argtypes = [RKLLM_Handle_t]
             self.rkllm_destroy.restype = ctypes.c_int
+            self.infer_time = 0
 
     # Record the user's input prompt
     def get_user_input(self, user_message, history):
@@ -150,7 +151,6 @@ class RKLLMLoaderClass:
         # Converts a Python list to a ctypes array.
         # The tokenizer outputs as a Python list.
         return (ctype * len(tokens))(*tokens)
-
     # Run inference
     def run(self, prompt, max_tokens=None):
         self.rkllm_infer_params = RKLLMInferParam()
@@ -162,9 +162,14 @@ class RKLLMLoaderClass:
         self.rkllm_input.input_mode = RKLLMInputMode.RKLLM_INPUT_TOKEN
         self.rkllm_input.input_data.token_input.input_ids = self.tokens_to_ctypes_array(prompt, ctypes.c_int)
         self.rkllm_input.input_data.token_input.n_tokens = ctypes.c_ulong(len(prompt))
+        start_time = time.time()
         self.rkllm_run(self.handle, ctypes.byref(self.rkllm_input), ctypes.byref(self.rkllm_infer_params), None)
+        end_time = time.time()
+        self.infer_time = float(end_time - start_time)
         return
 
+    def get_infer_time(self):
+        return self.infer_time
     # Release RKLLM object from memory
     def release(self):
         self.rkllm_abort(self.handle)
