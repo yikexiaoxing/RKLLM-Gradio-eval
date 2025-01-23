@@ -46,6 +46,7 @@ class Usage(BaseModel):
     prompt_tokens: int
     total_tokens: int
     generate_speed: float
+    # prefill_speed: float
 
 
 # Input for OpenAI Completion API (non-streaming and streaming)
@@ -437,6 +438,12 @@ async def create_completion(request: CompletionRequest):
                 frequency_penalty=frequency_penalty,
                 presence_penalty=presence_penalty,
             )
+            # 计算预填充速度
+            # prefill_time = rkllm_model.get_prefill_time()
+            # print("prompt:", prompt_tokens)
+            # print("预填充时间:", prefill_time)
+            # prefill_speed = float(prompt_tokens / prefill_time)
+            # prefill_speed = round(prefill_speed, 2)
 
             #统计生成的tokens
             completion_tokens = len(response_content)
@@ -479,6 +486,7 @@ async def create_completion(request: CompletionRequest):
                     "completion_tokens": completion_tokens,
                     "total_tokens": prompt_tokens + completion_tokens,
                     "generate_speed": generate_speed,
+                    # "prefill_speed": prefill_speed,
                 },
             }
             logger.info(f"Response: {response}")
@@ -570,15 +578,22 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 presence_penalty=presence_penalty,
             )
 
+            # 计算预填充速度
+            # prefill_time = rkllm_model.get_prefill_time()
+            # print("prompt:", prompt_tokens)
+            # print("预填充时间:", prefill_time)
+            # prefill_speed = float(prompt_tokens / prefill_time)
+            # prefill_speed = round(prefill_speed, 2)
+
             # Count tokens in the response
             completion_tokens = len(response_content)
             #计算生成速度
             infer_time = rkllm_model.get_infer_time()
             generate_speed = completion_tokens / infer_time
-
             generate_speed = round(generate_speed, 2)
 
             response_content = "".join(response_content)
+
 
             logger.info(f"Token count in response: {completion_tokens}")
 
@@ -605,6 +620,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 completion_tokens=completion_tokens,
                 total_tokens=prompt_tokens + completion_tokens,
                 generate_speed=generate_speed,
+                # prefill_speed=prefill_speed
             )
 
             response = ChatCompletionResponse(

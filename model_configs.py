@@ -2,8 +2,8 @@ model_configs = {
     "Llama-3.2-Instruct": {
         "base_config": {
             "st_model_id": "c01zaut/Llama-3.2-3B-Instruct-rk3588-1.1.1",
-            "max_context_len": 4096,
-            "max_new_tokens": 4096,
+            "max_context_len": 8192,
+            "max_new_tokens": 8192,
             "top_k": 20,
             "top_p": 0.9,
             "temperature": 0.6,

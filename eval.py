@@ -43,8 +43,10 @@ def write_results_to_csv(output_file, results, model_name):
     # 模型相关的列
     model_columns = [
         f"{model_name}_message",
+        f"{model_name}_prompt_tokens",
+        f"{model_name}_prefill_speed",
         f"{model_name}_completion_tokens",
-        f"{model_name}_generate_speed"
+        # f"{model_name}_generate_speed"
     ]
     #文件是否存在
 
@@ -91,15 +93,20 @@ def main(input_csv, output_csv, model_names):
             prompt = result['问题']
             response = get_model_response(prompt, model_name)
             message = response['choices'][0]['message']['content']
-
+            prompt_tokens = response['usage']['prompt_tokens']
             completion_tokens = response['usage']['completion_tokens']
             generate_speed = response['usage']['generate_speed']
+            # prefill_speed = response['usage']['prefill_speed']
 
             # 将模型结果添加到当前行
             # result[model_name] = model_name
             result[f"{model_name}_message"] = message
+            result[f"{model_name}_prompt_tokens"] = prompt_tokens
+            result[f"{model_name}_prefill_speed"] = prefill_speed
             result[f"{model_name}_completion_tokens"] = completion_tokens
-            result[f"{model_name}_generate_speed"] = generate_speed
+            # result[f"{model_name}_generate_speed"] = generate_speed
+
+
             print(result)
 
         # 将当前模型的结果写入CSV文件
@@ -111,7 +118,7 @@ if __name__ == "__main__":
     # 设置命令行参数解析
     parser = argparse.ArgumentParser(description="Process CSV and get model responses.")
     parser.add_argument('--input_csv', type=str, default="./eval/input_100.csv", help="Path to the input CSV file.")
-    parser.add_argument('--output_csv', type=str, default="./eval/output/Llama-3.2-Instruct-3B-2.csv", help="Path to the output CSV file.")
+    parser.add_argument('--output_csv', type=str, default="./eval/output/Llama-3.2-Instruct-3B-3.csv", help="Path to the output CSV file.")
     parser.add_argument('--model_names', type=list, default=["Llama-3.2-Instruct-3B"],  help="Names of the models to test.")
 
     # 解析命令行参数

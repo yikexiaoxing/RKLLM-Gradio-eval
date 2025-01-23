@@ -158,10 +158,14 @@ class RKLLMLoaderClass:
         self.rkllm_infer_params.mode = RKLLMInferMode.RKLLM_INFER_GENERATE
         if max_tokens is not None:
             self.rkllm_infer_params.max_new_tokens = max_tokens
+        # prefill_start = time.time()
         self.rkllm_input = RKLLMInput()
         self.rkllm_input.input_mode = RKLLMInputMode.RKLLM_INPUT_TOKEN
         self.rkllm_input.input_data.token_input.input_ids = self.tokens_to_ctypes_array(prompt, ctypes.c_int)
         self.rkllm_input.input_data.token_input.n_tokens = ctypes.c_ulong(len(prompt))
+        # prefill_end = time.time()
+        # self.prefill_time = float(prefill_end - prefill_start)
+
         start_time = time.time()
         self.rkllm_run(self.handle, ctypes.byref(self.rkllm_input), ctypes.byref(self.rkllm_infer_params), None)
         end_time = time.time()
@@ -170,6 +174,8 @@ class RKLLMLoaderClass:
 
     def get_infer_time(self):
         return self.infer_time
+    def get_prefill_time(self):
+        return self.prefill_time
     # Release RKLLM object from memory
     def release(self):
         self.rkllm_abort(self.handle)
