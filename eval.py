@@ -95,7 +95,7 @@ def main(input_csv, output_csv, model_names):
             message = response['choices'][0]['message']['content']
             prompt_tokens = response['usage']['prompt_tokens']
             completion_tokens = response['usage']['completion_tokens']
-            generate_speed = response['usage']['generate_speed']
+            # generate_speed = response['usage']['generate_speed']
             # prefill_speed = response['usage']['prefill_speed']
 
             # 将模型结果添加到当前行

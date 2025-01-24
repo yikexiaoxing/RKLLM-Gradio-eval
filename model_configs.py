@@ -2,8 +2,8 @@ model_configs = {
     "Llama-3.2-Instruct": {
         "base_config": {
             "st_model_id": "c01zaut/Llama-3.2-3B-Instruct-rk3588-1.1.1",
-            "max_context_len": 8192,
-            "max_new_tokens": 8192,
+            "max_context_len": 16384,
+            "max_new_tokens": 16384,
             "top_k": 20,
             "top_p": 0.9,
             "temperature": 0.6,
@@ -18,8 +18,8 @@ model_configs = {
     "Qwen-2.5-Instruct": {
         "base_config": {
             "st_model_id": "Qwen/Qwen2.5-1.5B-Instruct",
-            "max_context_len": 2048,
-            "max_new_tokens": 2048,
+            "max_context_len": 16384,
+            "max_new_tokens": 16384,
             "top_k": 20,
             "top_p": 0.9,
             "temperature": 0.6,
@@ -36,8 +36,8 @@ model_configs = {
     "Phi-3-mini-4k-instruct": {
         "base_config": {
             "st_model_id": "microsoft/Phi-3-mini-128k-instruct",
-            "max_context_len": 2048,
-            "max_new_tokens": 2048,
+            "max_context_len": 16384,
+            "max_new_tokens": 16384,
             "top_k": 20,
             "top_p": 0.9,
             "temperature": 0.6,
