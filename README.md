@@ -1,152 +1,186 @@
-# RKLLM Gradio
+# Rockchip RK3588启动OpenAI接口使用说明 📄
 
-### This repository serves as a basic proof-of-concept for a Gradio interface for RKLLM with model switching.
+---
 
-## Getting started
+## 目录 📑
 
-To get started, clone this repository and enter the directory:
+1. [简介](#1-简介)
+2. [环境准备](#2-环境准备)
+   - [硬件要求](#21-硬件要求)
+   - [软件要求](#22-软件要求)
+3. [环境安装](#3-环境安装)
+   - [安装Python环境](#31-安装python环境)
+4. [关键配置](#4-关键配置)
+   - [模型存放与配置](#41-模型存放与配置)
+5. [模型列表](#5-模型列表)
+6. [启动OpenAI服务](#6-启动openai服务)
+7. [测试](#7-测试)
+   - [使用CURL命令调试](#71-使用curl命令调试)
+   - [Python示例](#72-python示例)
+8. [更多资源](#8-更多资源)
 
-```bash
-git clone https://github.com/c0zaut/rkllm-gradio && cd rkllm-gradio
-```
+---
 
-You can either setup the virtual environment yourself, or run the setup script:
+## 1. 简介 🚀
 
-```bash 
-bash setup.sh
-```
+本文档详细介绍了如何在RK3588开发板上启动OpenAI接口，并使用默认的RKLLM库（版本1.1.4）。通过本文档，您将能够快速配置环境并启动OpenAI接口服务。
 
-And enter the virtual environment, with all dependencies installed:
+**RKLLM-OpenAI** 是一个基于OpenAI接口，支持对话（chat）、补全（completions）等功能的大型语言模型。通过RKLLM，您可以轻松集成强大的自然语言处理能力到您的应用中。
 
-```bash
-source ~/.venv/rkllm-gradio/bin/activate
-(rkllm_gradio) you@hostname: ~/rkllm-gradio $ 
-```
+---
 
-If you setup the virtual environment yourself, you can use the provided requirements.txt file for quick dependency resolution.
+## 2. 环境准备 🛠️
 
-```bash
-(rkllm_gradio) you@hostname: ~/rkllm-gradio $ python -m pip install --upgrade -r requirements.txt
-```
+### 2.1 硬件要求
+- **RK3588开发板**：确保开发板已正确连接电源、网络及其他外设。
+- **存储空间**：请根据使用模型的大小设置存储空间，建议至少预留2GB空间。
 
-Once the application is setup, you will need to download and setup the models.
+### 2.2 软件要求
+- **操作系统**：RK3588开发板需运行基于Linux的系统（如烧录适配的Ubuntu或Debian）。
+- **Python环境**：确保已安装Python 3.8或更高版本。
+- **RKLLM库**：默认使用RKLLM库版本1.1.4。
 
-- Head over to https://huggingface.co/c01zaut and start downloading models!
-- Copy the downloaded models to this repo's `./models` directory
-- Update the `model_configs` dictionary in `model_configs.py` with the correct filename of the model, and update any parameters as you see fit
+---
 
-With models in place, and `available_models` containing at least 1 local model, you can start the app with:
+## 3. 环境安装 ⚙️
 
-```bash
-(rkllm_gradio) you@hostname: ~/rkllm-gradio $ python rkllm_server_gradio.py
-```
-
-Then head over to localhost:8080 in your browser:
-
-![browser](assets/browser.png)
-
-Select your model:
-
-![model-select](assets/select-model.png)
-![model-selected](assets/selected-model.png)
-
-And chat:
-
-![chat](assets/chat.png)
-
-## Default Version
-
-The default version of the RKLLM library, in `./lib/` is 1.1.2. To change to 1.1.1:
+### 3.1 安装Python环境
+确保您的系统已安装Python 3.10或更高版本。您可以通过以下命令检查Python版本：
 
 ```bash
-(rkllm_gradio) you@hostname: ~/rkllm-gradio $ cp -p ./lib/librkllmrt.so.111  ./lib/./lib/librkllmrt.so
+# 在RK3588开发板上，首先更新系统以确保所有软件包为最新版本
+sudo apt update
+sudo apt upgrade -y
+
+# 安装必要的Python依赖包
+sudo apt install python3-pip python3-venv -y
+
+# 检查Python版本
+python3 --version
 ```
 
-To change back to 1.1.2:
+---
+
+## 4. 关键配置 🔧
+
+### 4.1 模型存放与配置
+- **models**：存放RKLLM模型。
+- **model_configs.py**：该文件包含目前支持的RKLLM模型与其对应的推理参数。
+
+**配置文件示例：**
+```python
+"Qwen-2.5-Instruct": {
+    "base_config": {
+        "st_model_id": "./tokenizers/Qwen2.5-1.5B-Instruct",
+        "max_context_len": 8192,
+        "max_new_tokens": 8192,
+        "top_k": 20,
+        "top_p": 0.9,
+        "temperature": 0.6,
+        "repeat_penalty": 1.1,
+        "frequency_penalty": 0.3,
+        "system_prompt": "You are Qwen, created by Alibaba Cloud. You are a helpful assistant."
+    },
+    "models": {
+        "Qwen2.5-1.5B-Instruct": {"filename": "Qwen2.5-1.5B-Instruct-rk3588-w8a8-opt-0-hybrid-ratio-0.0.rkllm", "parameter_size": "1.5B"},
+        "Qwen2.5-3B-Instruct": {"filename": "Qwen2.5-3B-Instruct-rk3588-w8a8-opt-0-hybrid-ratio-0.0.rkllm", "parameter_size": "3B"},
+        "Qwen2.5-7B-Instruct": {"filename": "Qwen2.5-7B-Instruct-rk3588-w8a8-opt-0-hybrid-ratio-0.0.rkllm", "parameter_size": "7B"},
+    }
+}
+```
+
+---
+
+## 5. 模型列表 📋
+
+目前支持多种模型，您可以根据需求选择合适的模型：
+
+- **Llama系列**：
+  - Llama-3.2-Instruct-3B
+  - Llama-3.2-Instruct-1B
+
+- **Qwen系列**：
+  - Qwen2.5-1.5B-Instruct
+  - Qwen2.5-3B-Instruct
+  - Qwen2.5-7B-Instruct
+
+- **Phi系列**：
+  - Phi-3-mini-4k-instruct
+  - Phi-3-mini-128k-instruct
+
+- **其他模型**：
+  - gemma-2-2b-it-instruct
+  - internlm2_5-1_8b-chat
+  - deepseek-llm-7b-chat
+
+---
+
+## 6. 启动OpenAI服务 🚀
+
+使用以下命令启动OpenAI服务：
 
 ```bash
-(rkllm_gradio) you@hostname: ~/rkllm-gradio $ cp -p ./lib/librkllmrt.so.112  ./lib/./lib/librkllmrt.so
+python3 rkllm_server_openai.py --host 0.0.0.0 --port 8000
 ```
 
-## Features
+---
 
-- Chat template is auto generated with Transformers! No more setting "PREFIX" and "POSTFIX" manually!
-- Customizable parameters for each model family, including system prompt
-- txt2txt LLM inference, accelerated by the RK3588 NPU in a single, easy-to-use interface
-- Tabs for selecting model, txt2txt (chat,) and txt2mesh (Llama 3.1 8B finetune.)
-- txt2mesh: generate meshes with an LLM! **Needs work - large amount of accuracy loss**
+## 7. 测试 🧪
 
-![chair](assets/chair-w8a8_g512-opt-0-hybrid-1.0.png)
-![sword](assets/sword-w8a8_g512-opt-0-hybrid-1.0.png)
-![pyramid](assets/pyramid-w8a8_g512-opt-0-hybrid-1.0.png)
-
-## Limitations
-
-- I get matmul errors when using contexts that are larger than 4096. This occurs on both 1.1.1 and 1.1.2. Inference still completes, and I have gotten coherent output.
-
-```
-* Running on local URL:  http://0.0.0.0:8080
-
-To create a public link, set `share=True` in `launch()`.
-No model loaded! Continuing with initialization...
-=========INITIALIZING===========
-I rkllm: rkllm-runtime version: 1.1.2, rknpu driver version: 0.9.7, platform: RK3588
-
-RKLLM Model, internlm2_5-1_8b-chat-w8a8_g512-opt has been initialized successfully！
-==============================
-
-E RKNN: [00:45:12.110] meet unkown shape, op name: matmul_qkv_rkllm_spilt_1, shape: 64, 4160, 128
-2features matmul matmul run failed
-E RKNN: [00:45:12.110] meet unkown shape, op name: matmul_qkv_rkllm_spilt_2, shape: 64, 4160, 128
-2features matmul matmul run failed
-E RKNN: [00:45:12.125] meet unkown shape, op name: matmul_qk_rkllm_spilt_2, shape: 64, 128, 4160
-2features matmul matmul run failed
-E RKNN: [00:45:12.125] meet unkown shape, op name: matmul_qk_rkllm_spilt_1, shape: 64, 128, 4160
-
-...
-
-E RKNN: [00:45:13.315] meet unkown shape, op name: matmul_qk_rkllm_spilt_0, shape: 64, 128, 4224
-2features matmul matmul run failed
-E RKNN: [00:45:13.321] meet unkown shape, op name: matmul_qkv_rkllm_spilt_0, shape: 64, 4224, 128
-E RKNN: [00:45:13.321] meet unkown shape, op name: matmul_qkv_rkllm_spilt_1, shape: 64, 4224, 128
-2features matmul matmul run failed
-2features matmul matmul run failed
-
-...
-
-E RKNN: [00:45:13.546] meet unkown shape, op name: matmul_qk_rkllm_spilt_0, shape: 64, 128, 4288
-2features matmul matmul run failed
-E RKNN: [00:45:13.553] meet unkown shape, op name: matmul_qkv_rkllm_spilt_1, shape: 64, 4288, 128
-E RKNN: [00:45:13.553] meet unkown shape, op name: matmul_qkv_rkllm_spilt_2, shape: 64, 4288, 128
-2features matmul matmul run failed
-2features matmul matmul run failed
-
-...
-
---------------------------------------------------------------------------------------
- Stage         Total Time (ms)  Tokens    Time per Token (ms)      Tokens per Second       
---------------------------------------------------------------------------------------
- Prefill       48433.63         5052      9.59                     104.31                  
- Generate      3751388.33       8191      458.65                   2.18                    
---------------------------------------------------------------------------------------
+### 7.1 使用CURL命令调试
+```bash
+curl -L -X POST 'http://<host>:<port>/v1/completions' \
+-H 'Content-Type: application/json' \
+-H 'Accept: application/json' \
+--data-raw '{
+  "messages": [
+    {
+      "content": "You are a helpful assistant",
+      "role": "system"
+    },
+    {
+      "content": "Hi",
+      "role": "user"
+    }
+  ],
+  "model": "Llama-3.2-Instruct-1B",
+  "frequency_penalty": 0,
+  "max_tokens": 2048,
+  "presence_penalty": 0,
+  "response_format": {
+    "type": "text"
+  }
+}'
 ```
 
-- This is not a production-ready application. It cannot properly handle concurrency, or if users on the same network attempt to do things like load a model at the same time, or attempt to query the model simultaneously. 
+### 7.2 Python示例
+```python
+from openai import OpenAI
 
-- As of this time, only txt2txt models without LoRAs or prompt caches are supported.
+client = OpenAI(
+    base_url="http://<host>:<port>/v1",
+    api_key="your-api-key-here",  # ModelScope Token
+)
 
-- Some of the settings like top_k, top_p, and temperature have to manually adjusted inside of the `model_class.py` script.
+response = client.chat.completions.create(
+    model="Llama-3.2-Instruct-1B",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant"},
+        {"role": "user", "content": "Hello"},
+    ],
+    max_tokens=1024,
+    temperature=0.7,
+    stream=False
+)
 
-## TO DO:
+print(response.choices[0].message.content)
+```
 
-- Add support for multi-modal models
+---
 
-- Incorporate Stable Diffusion: https://huggingface.co/happyme531/Stable-Diffusion-1.5-LCM-ONNX-RKNN2
+## 8. 更多资源 📚
 
-- Change model dropdown to radio buttons
+- [RKLLM官方文档](https://github.com/airockchip/rknn-llm)
+- [OpenAI官方文档](https://platform.openai.com/docs)
 
-- Include text box input for system prompt
-
-- Support prompt cache
-
-- Add monitoring for system resources, such as NPU, CPU, GPU, and RAM
+通过以上文档，您可以快速上手使用RKLLM的OpenAI接口，集成强大的自然语言处理能力到您的应用中。
